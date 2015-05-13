@@ -1,3 +1,7 @@
+package sort;
+/*
+ * 
+ */
 import java.util.Arrays;
 import java.util.Random;
 
@@ -438,9 +442,26 @@ public class Sort {
 				if (arr[j] > arr[j - 1])
 					swap(arr, j, j - 1);
 	}
+	
+	/**
+	 * Shellsort_asc.
+	 *
+	 * @param arr the arr
+	 * @param start the start
+	 * @param end the end
+	 */
 	public static void shellsort_asc(int[] arr, int start, int end){
 		shellsort_asc(arr,start,end,(end-start)/2);
 	}
+	
+	/**
+	 * Shellsort_asc.
+	 *
+	 * @param arr the arr
+	 * @param start the start
+	 * @param end the end
+	 * @param d the d
+	 */
 	public static void shellsort_asc(int[] arr, int start, int end,int d) {
 		for (int i = start+d; i <= end; i+=d)
 			for (int j = i ; j -d>=start; j-=d)
@@ -450,9 +471,25 @@ public class Sort {
 		if (d/2>=1)shellsort_asc(arr,start,end,d/2);
 	}
 	
+	/**
+	 * Shellsort_desc.
+	 *
+	 * @param arr the arr
+	 * @param start the start
+	 * @param end the end
+	 */
 	public static void shellsort_desc(int[] arr, int start, int end){
 		shellsort_desc(arr,start,end,(end-start)/2);
 	}
+	
+	/**
+	 * Shellsort_desc.
+	 *
+	 * @param arr the arr
+	 * @param start the start
+	 * @param end the end
+	 * @param d the d
+	 */
 	public static void shellsort_desc(int[] arr, int start, int end,int d) {
 		for (int i = start+d; i <= end; i+=d)
 			for (int j = i ; j -d>=start; j-=d)
