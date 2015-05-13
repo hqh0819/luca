@@ -521,8 +521,8 @@ public class Sort {
 				else
 					break;
 
-		if (d / 2 >= 1)
-			shellsort_asc(arr, start, end, d / 2);
+		if (d/2>= 1)
+			shellsort_asc(arr, start, end, d /2);
 	}
 
 	/**
@@ -563,4 +563,5 @@ public class Sort {
 			shellsort_desc(arr, start, end, d / 2);
 	}
 
+	
 }
