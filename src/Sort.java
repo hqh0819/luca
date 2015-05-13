@@ -1,9 +1,10 @@
-package sort;
 /*
  * 
  */
 import java.util.Arrays;
 import java.util.Random;
+
+import javax.swing.JOptionPane;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -19,46 +20,73 @@ public class Sort {
 	 */
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		int[] arr1 = new int[10000];
-		int[] arr2 = new int[10000];
-		int[] arr3 = new int[10000];
-		int[] arr4 = new int[10000];
-		int[] arr5 = new int[10000];
+
+		int l = new Integer(JOptionPane.showInputDialog("輸入測試數組的大小"))
+				.intValue();
+		String s = "sort數據量："+l;
+		int[] arr1 = new int[l];
+		int[] arr2 = new int[l];
+		int[] arr3 = new int[l];
+		int[] arr4 = new int[l];
+		int[] arr5 = new int[l];
+		int[] arr6 = new int[l];
+		int[] arr7 = new int[l];
 		long time;
 
-		for (int i = 0; i < 10000; i++) {
-			arr1[i] = ran.nextInt(10000);
+		for (int i = 0; i < l; i++) {
+			arr1[i] = ran.nextInt(l);
 			arr2[i] = arr1[i];
 			arr3[i] = arr1[i];
 			arr4[i] = arr1[i];
 			arr5[i] = arr1[i];
+			arr6[i] = arr1[i];
+			arr7[i] = arr1[i];
 		}
-		//Sort.shellsort_asc(arr1, 0, arr1.length - 1);
-		//Sort.shellsort_desc(arr2, 0, arr2.length - 1);
+		// Sort.shellsort_asc(arr1, 0, arr1.length - 1);
+		// Sort.shellsort_desc(arr2, 0, arr2.length - 1);
 		time = System.currentTimeMillis();
 		Sort.quicksort_asc(arr1, 0, arr1.length - 1, true);
 		System.out.println("quicksort_asc耗時："
 				+ (System.currentTimeMillis() - time));
+		s = s + "\nquicksort_asc耗時：" + (System.currentTimeMillis() - time)+"毫秒";
 
 		time = System.currentTimeMillis();
 		Arrays.sort(arr3);
 		System.out.println("Arrays.sort耗時："
 				+ (System.currentTimeMillis() - time));
+		s = s + "\nArrays.sort耗時：" + (System.currentTimeMillis() - time)+"毫秒";
 
 		time = System.currentTimeMillis();
 		Sort.megersort_asc(arr2, 0, arr2.length - 1);
-		System.out.println("megersort_asc(耗時："
+		System.out.println("megersort_asc耗時："
 				+ (System.currentTimeMillis() - time));
-		
+		s = s + "\nmegersort_asc耗時：" + (System.currentTimeMillis() - time)+"毫秒";
+
 		time = System.currentTimeMillis();
 		Sort.shellsort_asc(arr4, 0, arr4.length - 1);
-		System.out.println("shellsort_asc(耗時："
+		System.out.println("shellsort_asc耗時："
 				+ (System.currentTimeMillis() - time));
-		
+		s = s + "\nshellsort_asc耗時：" + (System.currentTimeMillis() - time)+"毫秒";
+
 		time = System.currentTimeMillis();
 		Sort.insertsort_asc(arr5, 0, arr5.length - 1);
-		System.out.println("insertsort_asc(耗時："
+		System.out.println("insertsort_asc耗時："
 				+ (System.currentTimeMillis() - time));
+		s = s + "\ninsertsort_asc耗時：" + (System.currentTimeMillis() - time)+"毫秒";
+
+		time = System.currentTimeMillis();
+		Sort.maopaosort_asc(arr6, 0, arr6.length - 1);
+		System.out.println("maopaosort_asc耗時："
+				+ (System.currentTimeMillis() - time));
+		s = s + "\nmaopaosort_asc耗時：" + (System.currentTimeMillis() - time)+"毫秒";
+
+		time = System.currentTimeMillis();
+		Sort.selectsort_asc(arr7, 0, arr7.length - 1);
+		System.out.println("selectsort_asc耗時："
+				+ (System.currentTimeMillis() - time));
+		s = s + "\nselectsort_asc耗時：" + (System.currentTimeMillis() - time)+"毫秒";
+
+		JOptionPane.showMessageDialog(null, s);
 
 		System.out.println();
 	}
@@ -380,9 +408,12 @@ public class Sort {
 	/**
 	 * Selectsort_asc.
 	 *
-	 * @param arr the arr
-	 * @param start the start
-	 * @param end the end
+	 * @param arr
+	 *            the arr
+	 * @param start
+	 *            the start
+	 * @param end
+	 *            the end
 	 */
 	public static void selectsort_asc(int[] arr, int start, int end) {
 		int min;
@@ -399,9 +430,12 @@ public class Sort {
 	/**
 	 * Selectsort_desc.
 	 *
-	 * @param arr the arr
-	 * @param start the start
-	 * @param end the end
+	 * @param arr
+	 *            the arr
+	 * @param start
+	 *            the start
+	 * @param end
+	 *            the end
 	 */
 	public static void selectsort_desc(int[] arr, int start, int end) {
 		int max;
@@ -418,85 +452,115 @@ public class Sort {
 	/**
 	 * Insertsort_asc.
 	 *
-	 * @param arr the arr
-	 * @param start the start
-	 * @param end the end
+	 * @param arr
+	 *            the arr
+	 * @param start
+	 *            the start
+	 * @param end
+	 *            the end
 	 */
 	public static void insertsort_asc(int[] arr, int start, int end) {
-		for (int i = start+1; i <= end; i++)
-			for (int j = i ; j >start; j--)
+		for (int i = start + 1; i <= end; i++)
+			for (int j = i; j > start; j--)
 				if (arr[j] < arr[j - 1])
 					swap(arr, j, j - 1);
+				else
+					break;
 	}
 
 	/**
 	 * Insertsort_desc.
 	 *
-	 * @param arr the arr
-	 * @param start the start
-	 * @param end the end
+	 * @param arr
+	 *            the arr
+	 * @param start
+	 *            the start
+	 * @param end
+	 *            the end
 	 */
 	public static void insertsort_desc(int[] arr, int start, int end) {
-		for (int i = start+1; i <=end; i++)
-			for (int j = i ; j > start; j--)
+		for (int i = start + 1; i <= end; i++)
+			for (int j = i; j > start; j--)
 				if (arr[j] > arr[j - 1])
 					swap(arr, j, j - 1);
+				else
+					break;
 	}
-	
+
 	/**
 	 * Shellsort_asc.
 	 *
-	 * @param arr the arr
-	 * @param start the start
-	 * @param end the end
+	 * @param arr
+	 *            the arr
+	 * @param start
+	 *            the start
+	 * @param end
+	 *            the end
 	 */
-	public static void shellsort_asc(int[] arr, int start, int end){
-		shellsort_asc(arr,start,end,(end-start)/2);
+	public static void shellsort_asc(int[] arr, int start, int end) {
+		shellsort_asc(arr, start, end, (end - start) / 2);
 	}
-	
+
 	/**
 	 * Shellsort_asc.
 	 *
-	 * @param arr the arr
-	 * @param start the start
-	 * @param end the end
-	 * @param d the d
+	 * @param arr
+	 *            the arr
+	 * @param start
+	 *            the start
+	 * @param end
+	 *            the end
+	 * @param d
+	 *            the d
 	 */
-	public static void shellsort_asc(int[] arr, int start, int end,int d) {
-		for (int i = start+d; i <= end; i+=d)
-			for (int j = i ; j -d>=start; j-=d)
+	public static void shellsort_asc(int[] arr, int start, int end, int d) {
+		for (int i = start + d; i <= end; i += d)
+			for (int j = i; j - d >= start; j -= d)
 				if (arr[j] < arr[j - d])
 					swap(arr, j, j - d);
-		
-		if (d/2>=1)shellsort_asc(arr,start,end,d/2);
+				else
+					break;
+
+		if (d / 2 >= 1)
+			shellsort_asc(arr, start, end, d / 2);
 	}
-	
+
 	/**
 	 * Shellsort_desc.
 	 *
-	 * @param arr the arr
-	 * @param start the start
-	 * @param end the end
+	 * @param arr
+	 *            the arr
+	 * @param start
+	 *            the start
+	 * @param end
+	 *            the end
 	 */
-	public static void shellsort_desc(int[] arr, int start, int end){
-		shellsort_desc(arr,start,end,(end-start)/2);
+	public static void shellsort_desc(int[] arr, int start, int end) {
+		shellsort_desc(arr, start, end, (end - start) / 2);
 	}
-	
+
 	/**
 	 * Shellsort_desc.
 	 *
-	 * @param arr the arr
-	 * @param start the start
-	 * @param end the end
-	 * @param d the d
+	 * @param arr
+	 *            the arr
+	 * @param start
+	 *            the start
+	 * @param end
+	 *            the end
+	 * @param d
+	 *            the d
 	 */
-	public static void shellsort_desc(int[] arr, int start, int end,int d) {
-		for (int i = start+d; i <= end; i+=d)
-			for (int j = i ; j -d>=start; j-=d)
+	public static void shellsort_desc(int[] arr, int start, int end, int d) {
+		for (int i = start + d; i <= end; i += d)
+			for (int j = i; j - d >= start; j -= d)
 				if (arr[j] > arr[j - d])
 					swap(arr, j, j - d);
-		
-		if (d/2>=1)shellsort_desc(arr,start,end,d/2);
+				else
+					break;
+
+		if (d / 2 >= 1)
+			shellsort_desc(arr, start, end, d / 2);
 	}
-	
+
 }
