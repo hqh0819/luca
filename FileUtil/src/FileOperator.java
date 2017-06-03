@@ -1,11 +1,11 @@
 import java.io.*;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Enumeration;
 import java.util.LinkedList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.zip.ZipEntry;
@@ -43,18 +43,20 @@ public class FileOperator {
             int temp = 1;
             try {
                 temp = Integer.parseInt(args[3]);
-            } catch (Exception e) {
+            } catch (Exception ignored) {
             }
-            int threadcount = 0;
+            int thereabout;
+            thereabout = 0;
             try {
-                threadcount = Integer.parseInt(args[4]);
+                thereabout = Integer.parseInt(args[4]);
             } catch (Exception e) {
             }
 
             if (f.isFile()) {
                 copyFile(f, f1, temp != 0);
-            } else if (f.isDirectory()) {
-                copyDirectory(f, f1, temp != 0, threadcount > 0 ? threadcount : 10);
+            }
+            if (f.isDirectory()) {
+                copyDirectory(f, f1, temp != 0, thereabout > 0 ? thereabout : 10);
             }
         } else if (args.length >= 3 && args[0].equalsIgnoreCase("move")) {
             File f = new File(args[1]);
@@ -100,34 +102,35 @@ public class FileOperator {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        } else if (args.length >= 2 && (args[0].equalsIgnoreCase("unpackzip") || args[0].equalsIgnoreCase("unzip"))) {
-            File f = new File(args[1]);
-            File f1 = new File(args[2]);
-            int buffer = 0;
-            try {
-                buffer = Integer.parseInt(args[3]);
-            } catch (Exception e) {
-            }
-            try {
-                unPackzip(new ZipFile(f), f1, buffer > 10 ? buffer : 1024);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         } else {
-            StringBuilder s = new StringBuilder("");
-            s.append("請按以下方式輸入參數：" + "\n");
-            s.append("1.copy \"來源目錄\" \"目標目錄\" \"是否覆蓋檔(0為不覆蓋，其它為覆蓋)\" \"使用線程數\"" + "\n");
-            s.append("  注：copy 後至少要用兩個參數，沒寫的參數：\"是否覆蓋檔\" 為是 ，線程數默認為10" + "\n");
-            s.append("2.move \"來源目錄\" \"目標目錄\" \"使用線程數\"" + "\n");
-            s.append("  注：move 後至少要用兩個參數，沒寫的參數：線程數默認為10" + "\n");
-            s.append("3.del (或delete)\"目標目錄\" \"使用線程數\"" + "\n");
-            s.append("  注：del後至少要用一個參數，沒寫的參數：線程數默認為10" + "\n");
-            s.append("4.zip(或packzip)  \"來源目錄\" \"目的檔案\" \"緩存大小(單位為K)\" \"附加頂層目錄\"" + "\n");
-            s.append("  注：zip後至少要用兩個參數，沒寫的參數：緩存大小默認為1024（小於10的參數會忽略），附加頂層目錄為\"\"" + "\n");
-            s.append("5.unzip(或unpackzip)  \"來源目錄\" \"目的檔案\" \"緩存大小(單位為K)\"" + "\n");
-            s.append("  注：unzip(或unpackzip) 至少要有兩個參數，沒寫的參數：緩存大小默認為1024（小於10的參數會忽略）" + "\n");
+            if (args.length >= 2 && (args[0].equalsIgnoreCase("unpackzip") || args[0].equalsIgnoreCase("unzip"))) {
+                File f = new File(args[1]);
+                File f1 = new File(args[2]);
+                int buffer = 0;
+                try {
+                    buffer = Integer.parseInt(args[3]);
+                } catch (Exception ignored) {
+                }
+                try {
+                    unPackzip(new ZipFile(f), f1, buffer > 10 ? buffer : 1024);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                String s = "" + "請按以下方式輸入參數：" + "\n" +
+                        "1.copy \"來源目錄\" \"目標目錄\" \"是否覆蓋檔(0為不覆蓋，其它為覆蓋)\" \"使用線程數\"" + "\n" +
+                        "  注：copy 後至少要用兩個參數，沒寫的參數：\"是否覆蓋檔\" 為是 ，線程數默認為10" + "\n" +
+                        "2.move \"來源目錄\" \"目標目錄\" \"使用線程數\"" + "\n" +
+                        "  注：move 後至少要用兩個參數，沒寫的參數：線程數默認為10" + "\n" +
+                        "3.del (或delete)\"目標目錄\" \"使用線程數\"" + "\n" +
+                        "  注：del後至少要用一個參數，沒寫的參數：線程數默認為10" + "\n" +
+                        "4.zip(或packzip)  \"來源目錄\" \"目的檔案\" \"緩存大小(單位為K)\" \"附加頂層目錄\"" + "\n" +
+                        "  注：zip後至少要用兩個參數，沒寫的參數：緩存大小默認為1024（小於10的參數會忽略），附加頂層目錄為\"\"" + "\n" +
+                        "5.unzip(或unpackzip)  \"來源目錄\" \"目的檔案\" \"緩存大小(單位為K)\"" + "\n" +
+                        "  注：unzip(或unpackzip) 至少要有兩個參數，沒寫的參數：緩存大小默認為1024（小於10的參數會忽略）" + "\n";
 
-            System.out.println(s.toString());
+                System.out.println(s);
+            }
         }
     }
 
@@ -136,12 +139,12 @@ public class FileOperator {
      *
      * @param src 要删除的文件
      */
-    public static void deleteFile(File src) {
+    public static boolean deleteFile(File src) {
         if (!src.isFile()) {
             System.out.println(src.getAbsoluteFile() + ",不是文件");
-            return;
+            return false;
         }
-        src.delete();
+        return src.delete();
     }
 
     /**
@@ -159,60 +162,34 @@ public class FileOperator {
      * @param src             要删除的目录
      * @param corethreadcount 使用线程数量
      */
-    public static Thread deleteDirectory(File src, int corethreadcount) {
+    public static Thread deleteDirectory(final File src, final int corethreadcount) {
         if (!src.isDirectory()) {
             System.out.println(src.getAbsoluteFile() + ",不是文件夾");
             return null;
         }
         Thread thread = new Thread(new Runnable() {
-            private File src;
-            private int corethreadcount;
-
-            // 初始化變量
-            public Runnable init(File src, int corethreadcount) {
-                this.src = src;
-                this.corethreadcount = corethreadcount;
-                return this;
-            }
-
             @Override
             public void run() {
                 long time = System.currentTimeMillis();
                 String s = "Delete:" + src.getAbsolutePath() + "\n" + "使用線程數：" + corethreadcount + "，耗時：";
                 System.out.println("開始......");
                 // 获得src中所有文件及文件夹List
-                LinkedList<File> filelist = new LinkedList<File>();
-                LinkedList<File> directorylist = new LinkedList<File>();
+                final LinkedList<File> filelist = new LinkedList<File>();
+                final LinkedList<File> directorylist = new LinkedList<File>();
                 // 创建线程池，核心corethreadcount个线程，线程最大数量为corethreadcount*1.5,等级队列corethreadcount个，如线程满且队列也满则执行等级策略CallerRunsPolicy
-                ThreadPoolExecutor pool = new ThreadPoolExecutor(corethreadcount, (int) (corethreadcount * 1.5), 0,
+                final ThreadPoolExecutor pool = new ThreadPoolExecutor(corethreadcount, (int) (corethreadcount * 1.5), 0,
                         TimeUnit.SECONDS, new LinkedBlockingDeque<Runnable>(corethreadcount),
                         new ThreadPoolExecutor.CallerRunsPolicy());
 
-                StringBuilder flag = new StringBuilder("");// 遍历结束标识，结束时填over
-                Lock lock = new ReentrantLock();
+
+                final Lock lock = new ReentrantLock();
                 // 将遍历任务添加到线程池
-                pool.execute(new Runnable() {
-                    private File src;
-                    private LinkedList<File> filelist, directorylist;
-                    private StringBuilder flag;
-                    private Lock lock;
-
-                    public Runnable init(File src, LinkedList<File> filelist, LinkedList<File> directorylist,
-                                         StringBuilder flag, Lock lock) {
-                        this.src = src;
-                        this.filelist = filelist;
-                        this.directorylist = directorylist;
-                        this.flag = flag;
-                        this.lock = lock;
-                        return this;
-                    }
-
+                final Future futere_isoverflag = pool.submit(new Runnable() {
                     @Override
                     public void run() {
                         listAllFilesToDeleteDictory(src, filelist, directorylist, lock);
-                        flag.append("over");// 填写结束遍历标识
                     }
-                }.init(src, filelist, directorylist, flag, lock));
+                });
 
                 // 添加文件删除任务，只删文件
                 while (true) {
@@ -226,25 +203,11 @@ public class FileOperator {
                     }
                     if (f != null) {
                         // 添加文件删除任务
-                        pool.execute(new Runnable() {
-                            private File file;
-
-                            public Runnable init(File file) {
-                                this.file = file;
-                                return this;
-                            }
-
-                            @Override
-                            public void run() {
-                                file.delete();
-                            }
-                        }.init(f));
-                    } else if (flag.toString().equals("over")) {
+                        f.delete();
+                    } else if (futere_isoverflag.isDone()) {
                         break;
                     }
-
                 }
-
                 // 任务添加完后关闭线程池
                 pool.shutdown();
 
@@ -272,7 +235,7 @@ public class FileOperator {
                 // 输出执行所耗时间
                 System.out.println(s + (System.currentTimeMillis() - time) / 1000 + "秒");
             }
-        }.init(src, corethreadcount));
+        });
         thread.start();
         return thread;
     }
@@ -294,25 +257,16 @@ public class FileOperator {
      * @param des      目标文件
      * @param override 是否覆盖文件
      */
-    public static Thread copyFile(File src, File des, boolean override) {
+    public static Thread copyFile(final File src, final File des, boolean override) {
         if (!src.isFile()) {
             System.out.println(src.getAbsoluteFile() + ",不是文件");
             return null;
-        } else if (des.exists() && override == false) {
+        } else if (des.exists() && !override) {
             System.out.println("目的檔案已存在，選擇不覆蓋。無需複製操作。");
             return null;
         }
 
         Thread thread = new Thread(new Runnable() {
-            private File src;
-            private File des;
-
-            public Runnable init(File src, File des) {
-                this.src = src;
-                this.des = des;
-                return this;
-            }
-
             @Override
             public void run() {
                 long time = System.currentTimeMillis();
@@ -320,7 +274,7 @@ public class FileOperator {
                 System.out.println("開始......");
                 des.getParentFile().mkdirs();
                 // 创建线程池，核心corethreadcount个线程，线程最大数量为corethreadcount*1.5,等级队列corethreadcount个，如线程满且队列也满则执行等级策略CallerRunsPolicy
-                ExecutorService pool = new ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS,
+                final ExecutorService pool = new ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS,
                         new LinkedBlockingDeque<Runnable>(1), new ThreadPoolExecutor.CallerRunsPolicy());
                 copyFile(src, des, pool);
                 pool.shutdown();
@@ -339,7 +293,7 @@ public class FileOperator {
                 System.out.println(s + (System.currentTimeMillis() - time) / 1000 + "秒");
 
             }
-        }.init(src, des));
+        });
         thread.start();
         return thread;
 
@@ -374,26 +328,12 @@ public class FileOperator {
      * @param override        是否覆盖文件
      * @param corethreadcount 线程数
      */
-    public static Thread copyDirectory(File src, File des, boolean override, int corethreadcount) {
+    public static Thread copyDirectory(final File src, final File des, final boolean override, final int corethreadcount) {
         if (!src.isDirectory()) {
             System.out.println(src.getAbsoluteFile() + ",不是文件夾");
             return null;
         }
         Thread thread = new Thread(new Runnable() {
-            private File src;
-            private File des;
-            private int corethreadcount;
-            private boolean override;
-
-            public Runnable init(File src, File des, boolean override, int corethreadcount) {
-                this.src = src;
-                this.des = des;
-                this.override = override;
-                this.corethreadcount = corethreadcount;
-
-                return this;
-            }
-
             @Override
             public void run() {
                 long time = System.currentTimeMillis();
@@ -405,7 +345,7 @@ public class FileOperator {
                 if (!des.isDirectory())
                     des.mkdirs();
                 // 创建线程池，核心corethreadcount个线程，线程最大数量为corethreadcount*1.5,等级队列corethreadcount个，如线程满且队列也满则执行等级策略CallerRunsPolicy
-                ThreadPoolExecutor pool = new ThreadPoolExecutor(corethreadcount, (int) (corethreadcount * 1.5), 0,
+                final ThreadPoolExecutor pool = new ThreadPoolExecutor(corethreadcount, (int) (corethreadcount * 1.5), 0,
                         TimeUnit.SECONDS, new LinkedBlockingDeque<Runnable>(corethreadcount),
                         new ThreadPoolExecutor.CallerRunsPolicy());
 
@@ -428,7 +368,7 @@ public class FileOperator {
                 // 输出耗时
                 System.out.println(s + (System.currentTimeMillis() - time) / 1000 + "秒");
             }
-        }.init(src, des, override, corethreadcount));
+        });
         thread.start();
         return thread;
 
@@ -442,39 +382,19 @@ public class FileOperator {
      * @param des  目标目录
      * @param pool 复制文件要添加到的线程池
      */
-    public static void copyDirectory(File src, File des, boolean override, ExecutorService pool) {
+    public static void copyDirectory(final File src, final File des, final boolean override, ExecutorService pool) {
         // 遍历文件夹，将要复制的文件与目录文件放到Map中待复制
-        LinkedList<File[]> list = new LinkedList<File[]>();
-        StringBuilder flag = new StringBuilder("");// 遍历结束标识，结束时填over
-        Lock lock = new ReentrantLock();
+        final LinkedList<File[]> list = new LinkedList<File[]>();
+
+        final Lock lock = new ReentrantLock();
         // 将遍历任务添加到线程池
-        pool.execute(new Runnable() {
-            private File src, des;
-            private LinkedList<File[]> list;
-            private StringBuilder flag;
-            private boolean override;
-            private Lock lock;
-
-            public Runnable init(File src, File des, LinkedList<File[]> list, boolean override, StringBuilder flag,
-                                 Lock lock) {
-                this.src = src;
-                this.des = des;
-                this.list = list;
-                this.flag = flag;
-                this.override = override;
-                this.lock = lock;
-                return this;
-            }
-
+        final Future future_isoverflag = pool.submit(new Runnable() {
             @Override
             public void run() {
-
                 listFilesToCopyDirectory(src, new File(des.getAbsolutePath() + "\\" + src.getName()), list, override,
                         lock);
-                flag.append("over");// 填写结束遍历标识
-
             }
-        }.init(src, des, list, override, flag, lock));
+        });
         // 将要复制的文件一个一个创建执行任务
         while (true) {
             File[] fs;
@@ -488,8 +408,7 @@ public class FileOperator {
             if (fs != null) {
                 // 将复制文件任务添加到线程池
                 FileOperator.copyFile(fs[0], fs[1], pool);
-            } else if (flag.toString().equals("over")) {
-
+            } else if (future_isoverflag.isDone()) {
                 break;
             }
 
@@ -504,46 +423,24 @@ public class FileOperator {
      * @param des  目标文件
      * @param pool 复制文件要添加到的线程池
      */
-    public static void copyFile(File src, File des, ExecutorService pool) {
+    public static void copyFile(final File src, final File des, ExecutorService pool) {
 
         pool.execute(new Runnable() {
-            /**
-             * 复制文件
-             */
-            private File src, dsc;// 要复制的来源文件与目标文件
-
-            /**
-             * 初始化变量
-             *
-             * @param src
-             *            要复制的来源文件
-             * @param dsc
-             *            目标文件
-             *
-             */
-            public Runnable init(File src, File dsc) {
-                this.src = src;
-                this.dsc = dsc;
-
-                return this;
-            }
-
             /**
              * 执行复制操作
              */
             @Override
             public void run() {
-
                 try {
-
-                    copyFileByFileChanner(src, dsc);
+                    Files.copy(Paths.get(src.getAbsolutePath()), Paths.get(des.getAbsolutePath()), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES);
+                    //copyFileByFileChanner(src, des);
                     //copyFileByFileOutputStream(src, dsc, 1024);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
 
-        }.init(src, des));
+        });
 
     }
 
@@ -1031,25 +928,16 @@ public class FileOperator {
      * @param des  目标文件
      * @param pool 复制文件要添加到的线程池
      */
-    public static void moveFile(File src, File des, ExecutorService pool) {
-
+    public static void moveFile(final File src, final File des, final ExecutorService pool) {
         pool.execute(new Runnable() {
-            private File src, dsc;// 要复制的来源文件与目标文件
-
-            public Runnable init(File src, File dsc) {
-                this.src = src;
-                this.dsc = dsc;
-                return this;
-            }
-
             @Override
             public void run() {
-
                 try {
                     // 创建目标文件所在目录
-                    dsc.getParentFile().mkdirs();
-                    if (!src.renameTo(dsc)) {// 如果用renameTo移动文件不成功则使用复制再删除的方案
-                        FileOperator.copyFileByFileChanner(src, dsc);
+                    des.getParentFile().mkdirs();
+                    if (!src.renameTo(des)) {// 如果用renameTo移动文件不成功则使用复制再删除的方案
+                        Files.copy(Paths.get(src.getAbsolutePath()), Paths.get(des.getAbsolutePath()), StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING);
+                        //FileOperator.copyFileByFileChanner(src, des);
                         src.delete();
                     }
                 } catch (IOException e) {
@@ -1057,7 +945,7 @@ public class FileOperator {
                 }
             }
 
-        }.init(src, des));
+        });
 
     }
 
@@ -1078,21 +966,12 @@ public class FileOperator {
      * @param des             目标目录
      * @param corethreadcount 线程数
      */
-    public static Thread moveDirectory(File src, File des, int corethreadcount) {
+    public static Thread moveDirectory(final File src, final File des, final int corethreadcount) {
         if (!src.isDirectory()) {
             System.out.println(src.getAbsoluteFile() + ",不是文件夾");
             return null;
         }
         Thread thread = new Thread(new Runnable() {
-            private File src, des;
-            private int corethreadcount;
-
-            public Runnable init(File src, File des, int corethreadcount) {
-                this.src = src;
-                this.des = des;
-                this.corethreadcount = corethreadcount;
-                return this;
-            }
 
             @Override
             public void run() {
@@ -1102,45 +981,29 @@ public class FileOperator {
                 System.out.println("開始......");
                 if (!src.isDirectory() || !src.exists())
                     return;
-                if (!des.isDirectory())
+                if (!des.isDirectory()) {
                     des.mkdirs();
+                }
                 // 创建线程池，核心corethreadcount个线程，线程最大数量为corethreadcount*1.5,等级队列corethreadcount个，如线程满且队列也满则执行等级策略CallerRunsPolicy
-                ThreadPoolExecutor pool = new ThreadPoolExecutor(corethreadcount, (int) (corethreadcount * 1.5), 0,
+                final ThreadPoolExecutor pool = new ThreadPoolExecutor(corethreadcount, (int) (corethreadcount * 1.5), 0,
                         TimeUnit.SECONDS, new LinkedBlockingDeque<Runnable>(corethreadcount),
                         new ThreadPoolExecutor.CallerRunsPolicy());
 
                 // 遍历文件夹，将要复制的文件与目录文件放到Map中待复制
-                LinkedList<File[]> movelist = new LinkedList<File[]>();
-                LinkedList<File> directorylist = new LinkedList<File>();
-                StringBuilder flag = new StringBuilder("");// 遍历结束标识，结束时填over
-                Lock lock = new ReentrantLock();
-                // 将遍历任务添加到线程池
-                pool.execute(new Runnable() {
-                    private File src, des;
-                    private LinkedList<File[]> movelist;
-                    private LinkedList<File> directorylist;
-                    private StringBuilder flag;
-                    private Lock lock;
+                final LinkedList<File[]> movelist = new LinkedList<File[]>();
+                final LinkedList<File> directorylist = new LinkedList<File>();
 
-                    public Runnable init(File src, File des, LinkedList<File[]> movelist,
-                                         LinkedList<File> directorylist, StringBuilder flag, Lock lock) {
-                        this.src = src;
-                        this.des = des;
-                        this.movelist = movelist;
-                        this.directorylist = directorylist;
-                        this.flag = flag;
-                        this.lock = lock;
-                        return this;
-                    }
+                final Lock lock = new ReentrantLock();
+                // 将遍历任务添加到线程池
+                Future future_isoverflag = pool.submit(new Runnable() {
 
                     @Override
                     public void run() {
                         listAllFilesToMoveDictory(src, new File(des.getAbsolutePath() + "\\" + src.getName()), movelist,
                                 directorylist, lock);
-                        flag.append("over");// 填写结束遍历标识
 
                     }
-                }.init(src, des, movelist, directorylist, flag, lock));
+                });
                 // 将要复制的文件一个一个创建执行任务
                 while (true) {
                     File[] fs;
@@ -1154,7 +1017,7 @@ public class FileOperator {
                     if (fs != null) {
                         // 将复制文件任务添加到线程池
                         moveFile(fs[0], fs[1], pool);
-                    } else if (flag.toString().equals("over")) {
+                    } else if (future_isoverflag.isDone()) {
                         break;
                     }
 
@@ -1186,7 +1049,7 @@ public class FileOperator {
                 // 输出耗时
                 System.out.println(s + (System.currentTimeMillis() - time) / 1000 + "秒");
             }
-        }.init(src, des, corethreadcount));
+        });
         thread.start();
         return thread;
     }
@@ -1201,9 +1064,10 @@ public class FileOperator {
      */
     protected static void listAllFilesToMoveDictory(File src, File des, LinkedList<File[]> movelist,
                                                     LinkedList<File> dictorylist, Lock lock) {
+        File[] files;
         for (File f : src.listFiles()) {
             if (f.isFile()) {
-                File[] files = new File[2];
+                files = new File[2];
                 files[0] = f;
                 files[1] = new File(des.getAbsolutePath() + "\\" + f.getName());
                 lock.lock();
