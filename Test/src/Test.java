@@ -6,6 +6,8 @@ import java.io.IOException;
  */
 public class Test {
     public static void main(String[] args) throws IOException, InterruptedException {
+        //System.out.println(new File("E:\\Temp\\CR_E9AF3.tmp").isDirectory());
+        //System.out.println(new File("E:\\Temp\\CR_E9AF3.tmp").listFiles().length);
         FileOperator.deleteDirectory(new File("E:\\Temp"));
         //FileOperator.copyDirectory(new File("d:\\IdeaProjects"),new File("e:\\"));
 //       Path src= Paths.get("E:\\Videos\\灰姑娘中英字幕.mkv");

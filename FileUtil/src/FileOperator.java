@@ -454,6 +454,7 @@ public class FileOperator {
      */
     protected static void listFilesToCopyDirectory(File src, File des, LinkedList<File[]> list, boolean override,
                                                    Lock lock) {
+        if (src.listFiles() == null) return;
         for (File f : src.listFiles()) {
             if (f.isFile() && (override == true || !des.exists())) {
                 File[] files = new File[2];
@@ -484,18 +485,18 @@ public class FileOperator {
      */
     protected static void listAllFilesToDeleteDictory(File src, LinkedList<File> filelist,
                                                       LinkedList<File> directorylist, Lock lock) {
+        if (src.listFiles() == null) return;
         for (File f : src.listFiles()) {
-            if (f.isDirectory()) {
-                directorylist.addFirst(f);
-                listAllFilesToDeleteDictory(f, filelist, directorylist, lock);
-            } else if (f.isFile()) {
+            if (f.isFile()) {
                 lock.lock();
                 try {
                     filelist.addFirst(f);
                 } finally {
                     lock.unlock();
                 }
-
+            } else if (f.isDirectory()) {
+                directorylist.addFirst(f);
+                listAllFilesToDeleteDictory(f, filelist, directorylist, lock);
             }
         }
 
@@ -856,7 +857,7 @@ public class FileOperator {
     protected static void ListFilesToPackZip(File src, LinkedList<String[]> fs, String subPath) {
         if (!src.isDirectory())
             return;
-
+        if (src.listFiles() == null) return;
         for (File f : src.listFiles()) {
             if (f.isFile()) {
                 fs.addFirst(
@@ -1064,6 +1065,7 @@ public class FileOperator {
      */
     protected static void listAllFilesToMoveDictory(File src, File des, LinkedList<File[]> movelist,
                                                     LinkedList<File> dictorylist, Lock lock) {
+        if (src.listFiles() == null) return;
         File[] files;
         for (File f : src.listFiles()) {
             if (f.isFile()) {
