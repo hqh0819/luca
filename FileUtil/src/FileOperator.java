@@ -257,7 +257,7 @@ public class FileOperator {
      * @param des      目标文件
      * @param override 是否覆盖文件
      */
-    public static Thread copyFile(final File src, final File des, boolean override) {
+    public static Thread copyFile(final File src, final File des, final boolean override) {
         if (!src.isFile()) {
             System.out.println(src.getAbsoluteFile() + ",不是文件");
             return null;
@@ -276,7 +276,7 @@ public class FileOperator {
                 // 创建线程池，核心corethreadcount个线程，线程最大数量为corethreadcount*1.5,等级队列corethreadcount个，如线程满且队列也满则执行等级策略CallerRunsPolicy
                 final ExecutorService pool = new ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS,
                         new LinkedBlockingDeque<Runnable>(1), new ThreadPoolExecutor.CallerRunsPolicy());
-                copyFile(src, des, pool);
+                if (!des.isFile() || override) copyFile(src, des, pool);
                 pool.shutdown();
                 // 等待，直到复制任务都执行完毕
                 while (true) {
@@ -407,7 +407,7 @@ public class FileOperator {
             }
             if (fs != null) {
                 // 将复制文件任务添加到线程池
-                FileOperator.copyFile(fs[0], fs[1], pool);
+                if (!fs[1].isFile() || override) FileOperator.copyFile(fs[0], fs[1], pool);
             } else if (future_isoverflag.isDone()) {
                 break;
             }
